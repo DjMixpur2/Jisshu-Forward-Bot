@@ -11,6 +11,28 @@ from pyrogram.errors import FloodWait
 logging.config.fileConfig('logging.conf')
 logging.getLogger().setLevel(logging.INFO)
 logging.getLogger("pyrogram").setLevel(logging.ERROR)
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
+
+class HealthCheckHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health':
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'OK')
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+def run_server(port=8000):
+    server = HTTPServer(('0.0.0.0', port), HealthCheckHandler)
+    print(f'Starting health check server on port {port}')
+    server.serve_forever()
+
+# हेल्थ चेक सर्वर को बैकग्राउंड में चलाने के लिए:
+threading.Thread(target=run_server, daemon=True).start()
+
+
 
 class Bot(Client): 
     def __init__(self):
